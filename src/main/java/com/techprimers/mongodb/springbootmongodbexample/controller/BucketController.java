@@ -5,10 +5,7 @@ import com.techprimers.mongodb.springbootmongodbexample.repository.BucketReposit
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.time.Instant;
@@ -60,16 +57,9 @@ public class BucketController {
             Bucket bucket = bucketRepository.findOneByName(bucketname);
             if (bucket != null){
                 bucketRepository.delete(bucket);
-                System.out.println("here");
                 String path = "storage/" + bucketname;
                 File theDir = new File(path);
                 FileUtils.deleteDirectory(theDir);
-
-                System.out.println("hello");
-
-
-
-                System.out.println("here 2 ");
 
                 return ResponseEntity.ok().body("delete " + bucketname );
             }
@@ -83,6 +73,27 @@ public class BucketController {
         }
 
 //        return ResponseEntity.badRequest().body("fail to create ");
+
+    }
+
+    @GetMapping(value = "/{bucketname}", params = "list")
+    public ResponseEntity listObjectInBucket(@PathVariable(name = "bucketname") String bucketname) {
+
+        try {
+            Bucket bucket = bucketRepository.findOneByName(bucketname);
+            if (bucket != null){
+                System.out.println(bucketRepository.findAll());
+
+                return ResponseEntity.ok().body("list " + bucketname );
+            }
+            else {
+                return ResponseEntity.badRequest().body("fail to list, bucket name does not exist ");
+            }
+        }
+        catch (Exception e){
+            System.out.println(e);
+            return ResponseEntity.badRequest().body("fail to list " + bucketname);
+        }
 
     }
 
