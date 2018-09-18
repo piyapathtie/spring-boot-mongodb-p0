@@ -1,6 +1,7 @@
 package com.techprimers.mongodb.springbootmongodbexample.controller;
 
 import com.techprimers.mongodb.springbootmongodbexample.document.Bucket;
+import com.techprimers.mongodb.springbootmongodbexample.document.ObjectFile;
 import com.techprimers.mongodb.springbootmongodbexample.repository.BucketRepository;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -33,8 +36,8 @@ public class BucketController {
                 String randomUUIDString = uuid.toString();
 
                 Long create = Instant.now().toEpochMilli();
-
-                Bucket bucket = new Bucket(bnl, randomUUIDString, create, create);
+                Set<ObjectFile> objectFileSet = Collections.emptySet();
+                Bucket bucket = new Bucket(bnl, randomUUIDString, create, create, objectFileSet);
 
                 bucketRepository.save(bucket);
 
@@ -82,9 +85,10 @@ public class BucketController {
         try {
             Bucket bucket = bucketRepository.findOneByName(bnl);
             if (bucket != null){
-                System.out.println(bucketRepository.findAll());
 
-                return ResponseEntity.ok().body("list " + bucketname );
+//                System.out.println(bucket.list().toString());
+
+                return ResponseEntity.ok().body(bucket.list().toString());
             }
             else {
                 return ResponseEntity.badRequest().body("fail to list, bucket name does not exist ");

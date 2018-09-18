@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -44,10 +45,12 @@ public class ObjectFileController {
 
                     Bucket bucket = bucketRepository.findOneByName(bnl);
                     bucket.setModified(create);
+                    Set<ObjectFile> objectFileSet = bucket.getObjectFileSet();
+                    objectFileSet.add(objectFile);
+                    bucket.setObjectFileSet(objectFileSet);
 
                     bucketRepository.save(bucket);
                     objectFileRepository.save(objectFile);
-
 
                     return ResponseEntity.ok().body(objectFile);
                 }

@@ -1,8 +1,11 @@
 package com.techprimers.mongodb.springbootmongodbexample.document;
 
 import org.bson.types.ObjectId;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.data.annotation.Id;
 
+import java.util.HashMap;
 import java.util.Set;
 
 public class ObjectFile {
@@ -87,6 +90,15 @@ public class ObjectFile {
 
     public void setObjFilePair(Set<String> objFilePair) {
         this.objFilePair = objFilePair;
+    }
+
+    public HashMap<String, Object> list() {
+        HashMap<String , Object> hmap = new HashMap<>();
+        hmap.put("name", name);
+        hmap.put("created", created);
+        hmap.put("modified", modified);
+
+        return hmap;
     }
 
 }
