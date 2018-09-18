@@ -22,10 +22,10 @@ public class BucketController {
     @PostMapping(value = "/{bucketname}", params = "create")
     public ResponseEntity createBucket(@PathVariable(name = "bucketname") String bucketname) {
 
+        String bnl = bucketname.toLowerCase();
         try {
-
-            if (bucketRepository.findOneByName(bucketname) == null){
-                String path = "storage/" + bucketname;
+            if (bucketRepository.findOneByName(bnl) == null){
+                String path = "storage/" + bnl;
                 File theDir = new File(path);
                 theDir.mkdir();
 
@@ -34,18 +34,18 @@ public class BucketController {
 
                 Long create = Instant.now().toEpochMilli();
 
-                Bucket bucket = new Bucket(bucketname, randomUUIDString, create, create);
+                Bucket bucket = new Bucket(bnl, randomUUIDString, create, create);
 
                 bucketRepository.save(bucket);
 
                 return ResponseEntity.ok().body(bucket);
             }
             else {
-                return ResponseEntity.badRequest().body("fail to create " + bucketname + ", name already exist");
+                return ResponseEntity.badRequest().body("fail to create " + bnl + ", name already exist");
             }
         }
         catch (Exception e){
-            return ResponseEntity.badRequest().body("fail to create " + bucketname);
+            return ResponseEntity.badRequest().body("fail to create " + bnl);
         }
 
     }
@@ -53,15 +53,16 @@ public class BucketController {
     @DeleteMapping(value = "/{bucketname}", params = "delete")
     public ResponseEntity deleteBucket(@PathVariable(name = "bucketname") String bucketname) {
 
+        String bnl = bucketname.toLowerCase();
         try {
-            Bucket bucket = bucketRepository.findOneByName(bucketname);
+            Bucket bucket = bucketRepository.findOneByName(bnl);
             if (bucket != null){
                 bucketRepository.delete(bucket);
-                String path = "storage/" + bucketname;
+                String path = "storage/" + bnl;
                 File theDir = new File(path);
                 FileUtils.deleteDirectory(theDir);
 
-                return ResponseEntity.ok().body("delete " + bucketname );
+                return ResponseEntity.ok().body("delete " + bnl );
             }
             else {
                 return ResponseEntity.badRequest().body("fail to delete, bucket name does not exist ");
@@ -69,18 +70,17 @@ public class BucketController {
         }
         catch (Exception e){
             System.out.println(e);
-            return ResponseEntity.badRequest().body("fail to delete " + bucketname);
+            return ResponseEntity.badRequest().body("fail to delete " + bnl);
         }
-
-//        return ResponseEntity.badRequest().body("fail to create ");
 
     }
 
     @GetMapping(value = "/{bucketname}", params = "list")
     public ResponseEntity listObjectInBucket(@PathVariable(name = "bucketname") String bucketname) {
 
+        String bnl = bucketname.toLowerCase();
         try {
-            Bucket bucket = bucketRepository.findOneByName(bucketname);
+            Bucket bucket = bucketRepository.findOneByName(bnl);
             if (bucket != null){
                 System.out.println(bucketRepository.findAll());
 

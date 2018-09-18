@@ -1,6 +1,8 @@
 package com.techprimers.mongodb.springbootmongodbexample.controller;
 
 import com.techprimers.mongodb.springbootmongodbexample.document.Bucket;
+import com.techprimers.mongodb.springbootmongodbexample.document.ObjectFile;
+import com.techprimers.mongodb.springbootmongodbexample.repository.BucketRepository;
 import com.techprimers.mongodb.springbootmongodbexample.repository.ObjectFileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,37 +18,52 @@ public class ObjectFileController {
     @Autowired
     private ObjectFileRepository objectFileRepository;
 
+    @Autowired
+    private BucketRepository bucketRepository;
+
     @PostMapping(value = "/{bucketname}/{objectname}", params = "create")
     public ResponseEntity createObject(@PathVariable(name = "bucketname") String bucketname,
                                        @PathVariable(name = "objectname") String objectname
                                        ) {
 
-//        try {
-//
-//            if (objectFileRepository.findOneByName(bucketname) == null){
-//                String path = "storage/" + bucketname + objectname;
-//                File theDir = new File(path);
-//                theDir.mkdir();
-//
-//                UUID uuid = UUID.randomUUID();
-//                String randomUUIDString = uuid.toString();
-//
-//                Long create = Instant.now().toEpochMilli();
-//
-//                Object object = new Bucket(bucketname, randomUUIDString, create, create);
-//
-//                objectFileRepository.save(object);
-//
-//                return ResponseEntity.ok().body(object);
-//            }
-//            else {
-//                return ResponseEntity.badRequest().body("fail to create " + bucketname + ", name already exist");
-//            }
-//        }
-//        catch (Exception e){
-//            return ResponseEntity.badRequest().body("fail to create " + bucketname);
-//        }
-        return ResponseEntity.ok().body("");
+        String bnl = bucketname.toLowerCase();
+        String onl = objectname.toLowerCase();
+        try {
+            if (bucketRepository.findOneByName(bnl) != null ){
+                if (objectFileRepository.findOneByName(onl) == null){
+                    String path = "storage/" + bnl + "/"+ onl;
+                    File theDir = new File(path);
+                    theDir.mkdir();
+
+                    UUID uuid = UUID.randomUUID();
+                    String randomUUIDString = uuid.toString();
+
+                    Long create = Instant.now().toEpochMilli();
+
+                    ObjectFile objectFile = new ObjectFile(onl, randomUUIDString, create, create, false);
+
+                    Bucket bucket = bucketRepository.findOneByName(bnl);
+                    bucket.setModified(create);
+
+                    bucketRepository.save(bucket);
+                    objectFileRepository.save(objectFile);
+
+
+                    return ResponseEntity.ok().body(objectFile);
+                }
+                else{
+                    return ResponseEntity.badRequest().body("fail to create " + onl + ", name is already used");
+                }
+
+            }
+            else {
+                return ResponseEntity.badRequest().body("fail to create " + onl + ", bucket does not exist");
+            }
+        }
+        catch (Exception e){
+            System.out.println(e);
+            return ResponseEntity.badRequest().body("fail to create " + onl);
+        }
 
     }
 //

@@ -17,11 +17,12 @@ public class ObjectFile {
     private String fileType;
     private Set<String> objFilePair;
 
-    public ObjectFile(String name, String uuid, Long created, Long modified) {
+    public ObjectFile(String name, String uuid, Long created, Long modified, Boolean ticket) {
         this.name = name;
         this.uuid = uuid;
         this.created = created;
         this.modified = modified;
+        this.ticket = ticket;
     }
 
     public ObjectId getId() {
