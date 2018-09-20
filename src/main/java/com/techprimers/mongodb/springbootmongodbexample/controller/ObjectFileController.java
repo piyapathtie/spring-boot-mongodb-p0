@@ -1,5 +1,8 @@
 package com.techprimers.mongodb.springbootmongodbexample.controller;
 
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
+import com.google.common.io.BaseEncoding;
 import com.techprimers.mongodb.springbootmongodbexample.document.Bucket;
 import com.techprimers.mongodb.springbootmongodbexample.document.ObjectFile;
 import com.techprimers.mongodb.springbootmongodbexample.document.ObjectFileParts;
@@ -19,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -100,10 +104,7 @@ public class ObjectFileController {
 
     }
 
-    @GetMapping("/test")
-    public ResponseEntity test(){
-        return ResponseEntity.ok("hi");
-    }
+
     @PutMapping(value = "/{bucketname}/{objectname}", params = "partNumber")
     public ResponseEntity uploadFilePart(
             HttpServletRequest request,
@@ -130,7 +131,7 @@ public class ObjectFileController {
                     ObjectFileParts objectFileParts = new ObjectFileParts(objectname.toLowerCase(), ContentMD5, ContentLength, partNumber);
                     objectFile.getObjFileParts().put(partNumber, objectFileParts);
                     upload(request, path);
-                    
+
                     bucketRepository.save(bucket);
                     System.out.println("done");
                     return ResponseEntity.ok().body("");
@@ -144,9 +145,23 @@ public class ObjectFileController {
             return ResponseEntity.badRequest().body("");
         }
 
-//        return ResponseEntity.badRequest().body("fail to create ");
-
     }
+
+    private static String calculateChecksumForMultipartUpload(List<String> md5s) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String md5:md5s) {
+            stringBuilder.append(md5);
+        }
+
+        String hex = stringBuilder.toString();
+        byte raw[] = BaseEncoding.base16().decode(hex.toUpperCase());
+        Hasher hasher = Hashing.md5().newHasher();
+        hasher.putBytes(raw);
+        String digest = hasher.hash().toString();
+
+        return digest + "-" + md5s.size();
+    }
+
 //
 //    @GetMapping(value = "/{bucketname}", params = "list")
 //    public ResponseEntity listObjectInBucket(@PathVariable(name = "bucketname") String bucketname) {
