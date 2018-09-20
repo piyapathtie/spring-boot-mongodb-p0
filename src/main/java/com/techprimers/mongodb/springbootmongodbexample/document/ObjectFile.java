@@ -18,14 +18,15 @@ public class ObjectFile {
     private Long modified;
     private Boolean ticket;
     private String fileType;
-    private Set<String> objFilePair;
+    private HashMap objFileParts;
 
-    public ObjectFile(String name, String uuid, Long created, Long modified, Boolean ticket) {
+    public ObjectFile(String name, String uuid, Long created, Long modified, Boolean ticket, HashMap objFileParts) {
         this.name = name;
         this.uuid = uuid;
         this.created = created;
         this.modified = modified;
         this.ticket = ticket;
+        this.objFileParts = objFileParts;
     }
 
     public ObjectId getId() {
@@ -84,12 +85,12 @@ public class ObjectFile {
         this.fileType = fileType;
     }
 
-    public Set<String> getObjFilePair() {
-        return objFilePair;
+    public HashMap getObjFileParts() {
+        return objFileParts;
     }
 
-    public void setObjFilePair(Set<String> objFilePair) {
-        this.objFilePair = objFilePair;
+    public void setObjFilePair(HashMap objFileParts) {
+        this.objFileParts = objFileParts;
     }
 
     public HashMap<String, Object> list() {

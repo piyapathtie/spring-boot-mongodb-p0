@@ -3,6 +3,7 @@ package com.techprimers.mongodb.springbootmongodbexample.controller;
 import com.techprimers.mongodb.springbootmongodbexample.document.Bucket;
 import com.techprimers.mongodb.springbootmongodbexample.document.ObjectFile;
 import com.techprimers.mongodb.springbootmongodbexample.repository.BucketRepository;
+import com.techprimers.mongodb.springbootmongodbexample.repository.ObjectFileRepository;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -10,14 +11,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 
 @RestController
 public class BucketController {
+
+    @Autowired
+    private ObjectFileRepository objectFileRepository;
 
     @Autowired
     private BucketRepository bucketRepository;
@@ -28,12 +29,12 @@ public class BucketController {
         String bnl = bucketname.toLowerCase();
         try {
             if (bucketRepository.findOneByName(bnl) == null){
-                String path = "storage/" + bnl;
-                File theDir = new File(path);
-                theDir.mkdir();
-
                 UUID uuid = UUID.randomUUID();
                 String randomUUIDString = uuid.toString();
+
+                String path = "storage/" + randomUUIDString;
+                File theDir = new File(path);
+                theDir.mkdir();
 
                 Long create = Instant.now().toEpochMilli();
                 Set<ObjectFile> objectFileSet = Collections.emptySet();
@@ -59,11 +60,17 @@ public class BucketController {
         String bnl = bucketname.toLowerCase();
         try {
             Bucket bucket = bucketRepository.findOneByName(bnl);
+
             if (bucket != null){
+                for (ObjectFile element : bucket.getObjectFileSet()) {
+                    String n = element.list().get("name").toString().toLowerCase();
+                    ObjectFile objectFile = objectFileRepository.findOneByName(n);
+                    objectFileRepository.delete(objectFile);
+                }
                 bucketRepository.delete(bucket);
-                String path = "storage/" + bnl;
-                File theDir = new File(path);
-                FileUtils.deleteDirectory(theDir);
+//                String path = "storage/" + bnl;
+//                File theDir = new File(path);
+//                FileUtils.deleteDirectory(theDir);
 
                 return ResponseEntity.ok().body("delete " + bnl );
             }

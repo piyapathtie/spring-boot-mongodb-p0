@@ -6,6 +6,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 
 public interface ObjectFileRepository extends MongoRepository<ObjectFile, Integer> {
-    Bucket findOneByName(String bucketname);
-    Bucket deleteBucketByName(String bucketname);
+    ObjectFile findOneByName(String bucketname);
+    ObjectFile deleteBucketByName(String bucketname);
 }
