@@ -12,11 +12,11 @@ public class ObjectFileParts {
     private ObjectId id;
     private String name;
     private String md5;
-    private String length;
+    private Long length;
     private String partNumber;
     private String fileType;
 
-    public ObjectFileParts(String name, String md5, String length, String partNumber) {
+    public ObjectFileParts(String name, String md5, long length, String partNumber) {
         this.name = name;
         this.md5 = md5;
         this.length = length;
@@ -47,11 +47,11 @@ public class ObjectFileParts {
         this.md5 = md5;
     }
 
-    public String getLength() {
+    public Long getLength() {
         return length;
     }
 
-    public void setLength(String length) {
+    public void setLength(Long length) {
         this.length = length;
     }
 

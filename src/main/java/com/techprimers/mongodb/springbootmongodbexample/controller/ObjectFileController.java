@@ -20,11 +20,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 public class ObjectFileController {
@@ -117,32 +115,34 @@ public class ObjectFileController {
 
         try {
             ObjectFile objectFile;
-            String objuuid = "";
+            String objuuid;
             Bucket bucket = bucketRepository.findOneByName(bucketname.toLowerCase());
-            System.out.println(objectname);
-            for (ObjectFile element : bucket.getObjectFileSet()) {
-                System.out.println(element.getUuid());
-                if (element.getName().equals(objectname)){
-                    objectFile = element;
-                    objuuid = element.getUuid();
+            if (Integer.valueOf(partNumber) >= 1 && Integer.valueOf(partNumber) <= 10000){
+                for (ObjectFile element : bucket.getObjectFileSet()) {
+                    if (element.getName().equals(objectname)){
+                        if (element.getTicket().equals(false)){
+                            objectFile = element;
+                            objuuid = element.getUuid();
 
-                    bucket.getObjectFileSet();
-                    String path = "storage/" + bucket.getUuid() + "/" + objuuid + "/" + objectname.toLowerCase() + "-" + partNumber;
-                    ObjectFileParts objectFileParts = new ObjectFileParts(objectname.toLowerCase(), ContentMD5, ContentLength, partNumber);
-                    objectFile.getObjFileParts().put(partNumber, objectFileParts);
-                    upload(request, path);
+                            bucket.getObjectFileSet();
+                            String path = "storage/" + bucket.getUuid() + "/" + objuuid + "/" + objectname.toLowerCase() + "-" + partNumber;
+                            ObjectFileParts objectFileParts = new ObjectFileParts(objectname.toLowerCase(), ContentMD5, Long.valueOf(ContentLength), partNumber);
+                            objectFile.getObjFileParts().put(partNumber, objectFileParts);
+                            upload(request, path);
 
-                    bucketRepository.save(bucket);
-                    System.out.println("done");
-                    return ResponseEntity.ok().body("");
-
+                            bucketRepository.save(bucket);
+                            System.out.println("done");
+                            return ResponseEntity.ok().body("");
+                        }
+                    }
                 }
             }
-            return ResponseEntity.badRequest().body("");
+
+            return ResponseEntity.badRequest().body("error: ticketFlagged|InvalidPartNumber|InvalidObjectName|InvalidBucket");
         }
         catch (Exception e){
             System.out.println(e);
-            return ResponseEntity.badRequest().body("");
+            return ResponseEntity.badRequest().body("error " + e);
         }
 
     }
@@ -162,27 +162,51 @@ public class ObjectFileController {
         return digest + "-" + md5s.size();
     }
 
-//
-//    @GetMapping(value = "/{bucketname}", params = "list")
-//    public ResponseEntity listObjectInBucket(@PathVariable(name = "bucketname") String bucketname) {
-//
-//        try {
-//            Bucket bucket = bucketRepository.findOneByName(bucketname);
-//            if (bucket != null){
-//                System.out.println(bucketRepository.findAll());
-//
-//                return ResponseEntity.ok().body("list " + bucketname );
-//            }
-//            else {
-//                return ResponseEntity.badRequest().body("fail to list, bucket name does not exist ");
-//            }
-//        }
-//        catch (Exception e){
-//            System.out.println(e);
-//            return ResponseEntity.badRequest().body("fail to list " + bucketname);
-//        }
-//
-//    }
+
+    @PostMapping(value = "/{bucketname}/{objectname}", params = "complete")
+    public ResponseEntity CompleteMultiPartUpload(
+            @PathVariable(name = "bucketname") String bucketname,
+            @PathVariable(name = "objectname") String objectname
+    ) {
+
+        try {
+            ObjectFile objectFile;
+            Bucket bucket = bucketRepository.findOneByName(bucketname);
+            if (bucket != null){
+                for (ObjectFile element : bucket.getObjectFileSet()) {
+                    if (element.getName().equals(objectname)){
+                        objectFile = element;
+                        Long length = Long.valueOf(0);
+                        List md5s = new ArrayList();
+                        for (Integer i = 1; i <= objectFile.getObjFileParts().size(); i++){
+                            ObjectFileParts objectFileParts = (ObjectFileParts) objectFile.getObjFileParts().get(i.toString());
+                            length += objectFileParts.getLength();
+//                            System.out.println("---------" + objectFileParts.getMd5());
+                            md5s.add(objectFileParts.getMd5());
+                        }
+
+                        HashMap<String , Object> hmap = new HashMap<>();
+                        hmap.put("eTag", calculateChecksumForMultipartUpload(md5s));
+                        hmap.put("length", length);
+                        hmap.put("name", objectname.toLowerCase());
+                        objectFile.setTicket(true);
+                        bucketRepository.save(bucket);
+                        System.out.println(hmap);
+                        return ResponseEntity.ok().body(hmap);
+
+                    }
+                }
+            }
+            else {
+                return ResponseEntity.badRequest().body("error: InvalidObjectName|InvalidBucket");
+            }
+        }
+        catch (Exception e){
+            System.out.println(e);
+            return ResponseEntity.badRequest().body("error" + e);
+        }
+        return ResponseEntity.badRequest().body("error: InvalidObjectName|InvalidBucket");
+    }
 
 
 
