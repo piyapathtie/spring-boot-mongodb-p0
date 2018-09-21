@@ -131,13 +131,16 @@ public class ObjectFileController {
                             upload(request, path);
 
                             bucketRepository.save(bucket);
-                            System.out.println("done");
-                            return ResponseEntity.ok().body("");
+                            HashMap<String , Object> hmap = new HashMap<>();
+                            hmap.put("md5", ContentMD5);
+                            hmap.put("length", ContentLength);
+                            hmap.put("partNumber", partNumber);
+                            return ResponseEntity.ok().body(hmap);
                         }
                     }
                 }
             }
-
+            System.out.println("error");
             return ResponseEntity.badRequest().body("error: ticketFlagged|InvalidPartNumber|InvalidObjectName|InvalidBucket");
         }
         catch (Exception e){
@@ -206,6 +209,42 @@ public class ObjectFileController {
             return ResponseEntity.badRequest().body("error" + e);
         }
         return ResponseEntity.badRequest().body("error: InvalidObjectName|InvalidBucket");
+    }
+
+
+    @DeleteMapping(value = "/{bucketname}/{objectname}", params = "partNumber")
+    public ResponseEntity deleteParts(
+            @PathVariable(name = "bucketname") String bucketname,
+            @PathVariable(name = "objectname") String objectname,
+            @RequestParam(name = "partNumber") String partNumber
+    ) {
+
+        String bnl = bucketname.toLowerCase();
+        try {
+            Bucket bucket = bucketRepository.findOneByName(bnl);
+            if (bucket != null){
+                for (ObjectFile element : bucket.getObjectFileSet()) {
+                    if (element.getName().equals(objectname.toLowerCase()) && element.getTicket().equals(false)){
+                        if (element.getObjFileParts().get(partNumber) != null){
+                            element.getObjFileParts().remove(partNumber);
+                            bucketRepository.save(bucket);
+                            System.out.println("delete " + objectname + " part " + partNumber);
+                            return ResponseEntity.ok().body("delete " + objectname + " part " + partNumber );
+                        }
+                    }
+                }
+                System.out.println("fail to delete");
+                return ResponseEntity.badRequest().body("fail to delete, part does not exist");
+            }
+            else {
+                return ResponseEntity.badRequest().body("fail to delete");
+            }
+        }
+        catch (Exception e){
+            System.out.println(e);
+            return ResponseEntity.badRequest().body("fail to delete: " + e);
+        }
+
     }
 
 

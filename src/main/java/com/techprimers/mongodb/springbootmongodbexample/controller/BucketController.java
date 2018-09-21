@@ -62,11 +62,11 @@ public class BucketController {
             Bucket bucket = bucketRepository.findOneByName(bnl);
 
             if (bucket != null){
-                for (ObjectFile element : bucket.getObjectFileSet()) {
-                    String n = element.list().get("name").toString().toLowerCase();
-                    ObjectFile objectFile = objectFileRepository.findOneByName(n);
-                    objectFileRepository.delete(objectFile);
-                }
+//                for (ObjectFile element : bucket.getObjectFileSet()) {
+//                    String n = element.list().get("name").toString().toLowerCase();
+//                    ObjectFile objectFile = objectFileRepository.findOneByName(n);
+//                    objectFileRepository.delete(objectFile);
+//                }
                 bucketRepository.delete(bucket);
 //                String path = "storage/" + bnl;
 //                File theDir = new File(path);
