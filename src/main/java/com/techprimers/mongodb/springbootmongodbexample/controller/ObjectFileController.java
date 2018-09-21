@@ -287,7 +287,7 @@ public class ObjectFileController {
 
         try {
             String bnl = bucketname.toLowerCase();
-            String ojn = objectname.toLowerCase();
+//            String ojn = objectname.toLowerCase();
             Bucket bucket = bucketRepository.findOneByName(bnl);
 
             OutputStream os = response.getOutputStream();
@@ -333,8 +333,13 @@ public class ObjectFileController {
 
             for (Integer i = Integer.valueOf(start); i <= Integer.valueOf(part2); i++){
 //                System.out.println(sin.read());
+//                System.out.println(i);
                 os.write(sin.read());
             }
+
+            sin.close();
+            os.close();
+
 
 
 //            System.out.println(is);
