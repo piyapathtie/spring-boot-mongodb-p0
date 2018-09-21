@@ -247,6 +247,39 @@ public class ObjectFileController {
 
     }
 
+    @DeleteMapping(value = "/{bucketname}/{objectname}", params = "delete")
+    public ResponseEntity deleteObjectFile(
+            @PathVariable(name = "bucketname") String bucketname,
+            @PathVariable(name = "objectname") String objectname
+    ) {
+
+        String bnl = bucketname.toLowerCase();
+        String ojn = objectname.toLowerCase();
+        try {
+            Bucket bucket = bucketRepository.findOneByName(bnl);
+            if (bucket != null){
+
+                for (ObjectFile element : bucket.getObjectFileSet()) {
+                    if (element.getName().equals(ojn)){
+                        bucket.getObjectFileSet().remove(element);
+                        bucketRepository.save(bucket);
+                        System.out.println("delete " + objectname);
+                        return ResponseEntity.ok().body("delete " + objectname);
+                    }
+                }
+//                bucket.getObjectFileSet().removeIf(x -> (x.getName().equals(objectname)));
+//                bucketRepository.save(bucket);
+
+            }
+            return ResponseEntity.badRequest().body("fail to delete");
+        }
+        catch (Exception e){
+            System.out.println(e);
+            return ResponseEntity.badRequest().body("fail to delete: " + e);
+        }
+
+    }
+
 
 
 }
