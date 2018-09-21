@@ -16,10 +16,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
 import java.lang.reflect.Array;
 import java.time.Instant;
 import java.util.*;
@@ -278,6 +276,78 @@ public class ObjectFileController {
             return ResponseEntity.badRequest().body("fail to delete: " + e);
         }
 
+    }
+
+
+    @GetMapping(value = "/{bucketname}/{objectname}")
+    public ResponseEntity downloadObject(HttpServletResponse response,
+                                         @PathVariable( name =  "bucketname") String bucketname,
+                                         @PathVariable( name = "objectname") String objectname,
+                                         @RequestHeader( name = "Range", required = false) String range) {
+
+        try {
+            String bnl = bucketname.toLowerCase();
+            String ojn = objectname.toLowerCase();
+            Bucket bucket = bucketRepository.findOneByName(bnl);
+
+            OutputStream os = response.getOutputStream();
+            List<InputStream> lstIS = new ArrayList<>();
+
+
+            for (ObjectFile element : bucket.getObjectFileSet()) {
+                if (element.getName().equals(objectname)){
+//                    objectFile = element;
+                    for (Object ech : element.getObjFileParts().keySet()) {
+
+                        lstIS.add(new FileInputStream("storage/" + bucket.getUuid() + "/" + element.getUuid() + "/" + objectname.toLowerCase() + "-" + ech.toString()));
+
+                    }
+
+//                    for (Integer i = 1; i <= objectFile.getObjFileParts().size(); i++){
+//                        ObjectFileParts objectFileParts = (ObjectFileParts) objectFile.getObjFileParts().get(i.toString());
+//                        String path = "storage/" + bucket.getUuid() + "/" + objectFile.getUuid() + "/" + objectname.toLowerCase() + "-" + i;
+//                        System.out.println(path);
+//                        InputStream is = new FileInputStream(path);
+//
+////                        for (int j = 0; j < objectFileParts.getLength(); j++) {
+////                            System.out.println(is.read());
+////                            os.write(is.read());
+////                        }
+//                    }
+
+                }
+            }
+            System.out.println(lstIS);
+            SequenceInputStream sin = new SequenceInputStream(Collections.enumeration(lstIS));
+
+
+            String[] parts = range.split("-");
+            String part1 = parts[0];
+            String[] byten = part1.split("=");
+            String start = byten[1];
+            String part2 = parts[1];
+
+            System.out.println(start);
+            System.out.println(part2);
+
+
+            for (Integer i = Integer.valueOf(start); i <= Integer.valueOf(part2); i++){
+//                System.out.println(sin.read());
+                os.write(sin.read());
+            }
+
+
+//            System.out.println(is);
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+
+
+        return ResponseEntity.ok().body("");
     }
 
 
