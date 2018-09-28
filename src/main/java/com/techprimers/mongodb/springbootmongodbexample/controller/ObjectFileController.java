@@ -57,8 +57,9 @@ public class ObjectFileController {
 
                     Long create = Instant.now().toEpochMilli();
                     HashMap<String, ObjectFileParts> hmap = new HashMap<>();
+                    HashMap<String, String> metadatahmap = new HashMap<>();
 
-                    ObjectFile objectFile = new ObjectFile(onl, randomUUIDString, create, create, false, hmap);
+                    ObjectFile objectFile = new ObjectFile(onl, randomUUIDString, create, create, false, hmap, metadatahmap);
 
                     bucket.setModified(create);
                     Set<ObjectFile> objectFileSet = bucket.getObjectFileSet();
@@ -231,7 +232,7 @@ public class ObjectFileController {
                         }
                     }
                 }
-                System.out.println("fail to delete");
+//                System.out.println("fail to delete");
                 return ResponseEntity.badRequest().body("fail to delete, part does not exist");
             }
             else {
@@ -348,11 +349,113 @@ public class ObjectFileController {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
-
-
         return ResponseEntity.ok().body("");
+    }
+
+    @PutMapping(value = "/{bucketname}/{objectname}", params = "metadata")
+    public ResponseEntity addObjectMetadatabyKey(
+            @PathVariable(name = "bucketname") String bucketname,
+            @PathVariable(name = "objectname") String objectname,
+            @RequestParam(value = "key") String key,
+            @RequestBody String metadata)
+     {
+         try {
+            Bucket bucket = bucketRepository.findOneByName(bucketname.toLowerCase());
+            if (bucket != null){
+                for (ObjectFile element : bucket.getObjectFileSet()) {
+                    if (element.getName().equals(objectname)){
+                        HashMap hmap = element.getMetaData();
+                        hmap.put(key, metadata);
+                        element.setMetaData(hmap);
+                        bucketRepository.save(bucket);
+                        return ResponseEntity.ok().body("");
+                    }
+                }
+
+            }
+
+            System.out.println("error");
+            return ResponseEntity.badRequest().body("file not found");
+        }
+        catch (Exception e){
+            System.out.println(e);
+            return ResponseEntity.badRequest().body("error " + e);
+        }
+
+    }
+
+
+    @DeleteMapping(value = "/{bucketname}/{objectname}", params = {"metadata"})
+    public ResponseEntity deleteObjectMetadatabyKey(
+            @PathVariable(name = "bucketname") String bucketname,
+            @PathVariable(name = "objectname") String objectname,
+            @RequestParam(value = "key") String key)
+    {
+        try {
+            Bucket bucket = bucketRepository.findOneByName(bucketname.toLowerCase());
+            if (bucket != null){
+                for (ObjectFile element : bucket.getObjectFileSet()) {
+                    if (element.getName().equals(objectname)){
+                        HashMap hmap = element.getMetaData();
+                        hmap.remove(key);
+                        element.setMetaData(hmap);
+                        bucketRepository.save(bucket);
+                        return ResponseEntity.ok().body("");
+                    }
+                }
+
+            }
+
+            System.out.println("error");
+            return ResponseEntity.badRequest().body("file not found");
+        }
+        catch (Exception e){
+            System.out.println(e);
+            return ResponseEntity.badRequest().body("error " + e);
+        }
+
+    }
+
+
+    @GetMapping(value = "/{bucketname}/{objectname}", params = {"metadata"})
+    public ResponseEntity getObjectMetadataByKey(
+            @PathVariable(name = "bucketname") String bucketname,
+            @PathVariable(name = "objectname") String objectname,
+            @RequestParam(value = "key", required = false) String key)
+    {
+        try {
+            Bucket bucket = bucketRepository.findOneByName(bucketname.toLowerCase());
+            if (bucket != null){
+                if (key != null){
+                    for (ObjectFile element : bucket.getObjectFileSet()) {
+                        if (element.getName().equals(objectname)){
+                            HashMap hmap = element.getMetaData();
+                            HashMap<String, String> json = new HashMap<>();
+                            json.put(key, hmap.get(key).toString());
+                            System.out.println(json);
+                            return ResponseEntity.ok().body(json);
+                        }
+                    }
+                }
+                else{
+                    for (ObjectFile element : bucket.getObjectFileSet()) {
+                        if (element.getName().equals(objectname)){
+                            HashMap hmap = element.getMetaData();
+                            System.out.println(hmap);
+                            return ResponseEntity.ok().body(hmap);
+                        }
+                    }
+                }
+            }
+
+            System.out.println("error");
+            return ResponseEntity.badRequest().body("file not found");
+        }
+        catch (Exception e){
+            System.out.println(e);
+            return ResponseEntity.badRequest().body("error " + e);
+        }
+
     }
 
 

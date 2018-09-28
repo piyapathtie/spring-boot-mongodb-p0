@@ -25,3 +25,5 @@ nbdist/
 
 #Mongo DB Server
 data-mongodb/
+
+storage/

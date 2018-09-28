@@ -19,14 +19,16 @@ public class ObjectFile {
     private Boolean ticket;
     private String fileType;
     private HashMap objFileParts;
+    private HashMap metaData;
 
-    public ObjectFile(String name, String uuid, Long created, Long modified, Boolean ticket, HashMap objFileParts) {
+    public ObjectFile(String name, String uuid, Long created, Long modified, Boolean ticket, HashMap objFileParts, HashMap metaData) {
         this.name = name;
         this.uuid = uuid;
         this.created = created;
         this.modified = modified;
         this.ticket = ticket;
         this.objFileParts = objFileParts;
+        this.metaData = metaData;
     }
 
     public ObjectId getId() {
@@ -100,6 +102,15 @@ public class ObjectFile {
         hmap.put("modified", modified);
 
         return hmap;
+    }
+
+
+    public HashMap getMetaData() {
+        return metaData;
+    }
+
+    public void setMetaData(HashMap metaData) {
+        this.metaData = metaData;
     }
 
 }
